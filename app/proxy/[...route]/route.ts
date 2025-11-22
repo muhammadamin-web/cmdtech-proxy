@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-export async function GET(req: NextRequest, { params }: { params: { route: string[] } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { route: string[] } }
+) {
   try {
     const route = params.route || [];
     const resourcePath = route.join('/');
@@ -19,12 +22,14 @@ export async function GET(req: NextRequest, { params }: { params: { route: strin
     });
 
     if (!response.ok) {
-      return new NextResponse('Resource not found', { status: response.status });
+      return new NextResponse('Resource not found', {
+        status: response.status,
+      });
     }
 
     // Get the content type from the upstream response
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
-    
+
     // Get the response as ArrayBuffer
     const buffer = await response.arrayBuffer();
 
@@ -42,6 +47,9 @@ export async function GET(req: NextRequest, { params }: { params: { route: strin
   }
 }
 
-export async function HEAD(req: NextRequest, { params }: { params: { route: string[] } }) {
+export async function HEAD(
+  req: NextRequest,
+  { params }: { params: { route: string[] } }
+) {
   return GET(req, { params });
 }
