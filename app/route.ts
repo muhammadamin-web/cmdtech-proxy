@@ -18,8 +18,20 @@ export async function GET(req: NextRequest) {
     let html = await response.text();
 
     // Replace all Framer CDN URLs - point to /proxy endpoint for assets
+    // ebb.framer.ai domain
     html = html.replace(/https:\/\/ebb\.framer\.ai\//g, '/proxy/ebb.framer.ai/');
+    html = html.replace(/"https:\/\/ebb\.framer\.ai\//g, '"/proxy/ebb.framer.ai/');
+    html = html.replace(/url\(https:\/\/ebb\.framer\.ai\//g, 'url(/proxy/ebb.framer.ai/');
+    
+    // framerusercontent.com domain
     html = html.replace(/https:\/\/framerusercontent\.com\//g, '/proxy/framerusercontent.com/');
+    html = html.replace(/"https:\/\/framerusercontent\.com\//g, '"/proxy/framerusercontent.com/');
+    html = html.replace(/url\(https:\/\/framerusercontent\.com\//g, 'url(/proxy/framerusercontent.com/');
+    
+    // Catch any other frames CDN that might exist
+    html = html.replace(/https:\/\/frames\.framer\.ai\//g, '/proxy/frames.framer.ai/');
+    html = html.replace(/https:\/\/cdn\.framer\.ai\//g, '/proxy/cdn.framer.ai/');
+    html = html.replace(/https:\/\/assets\.framer\.ai\//g, '/proxy/assets.framer.ai/');
 
     // Remove Framer attribution comment
     html = html.replace(/<!--\s*✨\s*Built with Framer\s*•\s*https:\/\/www\.framer\.com\/\s*-->/g, '');
