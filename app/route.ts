@@ -4,7 +4,7 @@ export const runtime = 'edge';
 
 export async function GET(req: NextRequest) {
   try {
-    // Fetch the Framer website
+    // Fetch from Framer website
     const response = await fetch('https://cmdtech.framer.website/', {
       headers: {
         'User-Agent': req.headers.get('user-agent') || 'Mozilla/5.0',
@@ -12,55 +12,44 @@ export async function GET(req: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: 'Failed to fetch website' },
-        { status: response.status }
-      );
+      return new NextResponse('Upstream site error', { status: 502 });
     }
 
     let html = await response.text();
 
-    // Replace CDN URLs from Framer with custom domain
-    html = html.replace(/https:\/\/ebb\.framer\.ai/g, 'https://cmdtech.uz');
+    // Replace CDN URLs
+    html = html.replace(/https:\/\/ebb\.framer\.ai\//g, 'https://cmdtech.uz/');
+    
+    // Remove Framer attribution comment
+    html = html.replace(/<!-- ✨ Built with Framer • https:\/\/www\.framer\.com\/ -->/g, '');
 
     // Inject Yandex.Metrika tracking code
-    const yandexMetrika = `
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript" >
-    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();
-    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-    ym(97023034, "init", {
-      cl:true,
-      accurate:true
-    });
-    </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/97023034" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- /Yandex.Metrika counter -->
-    `;
+    const yandexMetrikaCode = `
+      <!-- Yandex.Metrika counter -->
+      <script type="text/javascript">
+        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};\n        m[i].l=1*new Date();\n        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}\n        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})\n        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");\n        ym(97023034, "init", {\n          clickmap:true,\n          trackLinks:true,\n          accurateTrackBounce:true,\n          webvisor:true\n        });\n      </script>\n      <noscript><div><img src="https://mc.yandex.ru/watch/97023034" style="position:absolute; left:-9999px;" alt="" /></div></noscript>\n    `;
+    html = html.replace(/<\/head>/i, `${yandexMetrikaCode}</head>`);
 
-    // Inject Yandex tracking before closing </head> tag
-    html = html.replace('</head>', yandexMetrika + '</head>');
-
-    // Remove Framer attribution comments
-    html = html.replace(/<!--[^]*?Framer[^]*?-->/g, '');
+    // Remove Framer badge
+    html = html.replace(/<div id="__framer-badge-container"[^>]*>.*?<\/div>/is, '');
+    
+    // Remove robots meta
+    html = html.replace(/<meta[^>]*name="robots"[^>]*>/gi, '');
 
     return new NextResponse(html, {
       status: 200,
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
+        'content-type': 'text/html; charset=utf-8',
+        'Connection': 'close',
         'Cache-Control': 'public, max-age=60, s-maxage=60',
         'Access-Control-Allow-Origin': '*',
       },
     });
-  } catch (error) {
-    console.error('Error in root handler:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  } catch (err) {
+    return new NextResponse(`Worker error:\n${err}`, {
+      status: 500,
+      headers: { 'content-type': 'text/plain' },
+    });
   }
 }
 
