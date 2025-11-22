@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     html = html.replace(/<\/head>/i, `${yandexMetrikaCode}</head>`);
 
     // Remove Framer badge
-    html = html.replace(/<div id="__framer-badge-container"[^>]*>.*?<\/div>/is, '');
+    html = html.replace(/<div id="__framer-badge-container"[^>]*>.*?<\/div>/gi, '');
     
     // Remove robots meta
     html = html.replace(/<meta[^>]*name="robots"[^>]*>/gi, '');
