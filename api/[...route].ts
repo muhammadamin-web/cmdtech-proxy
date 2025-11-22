@@ -12,9 +12,10 @@ export async function GET(req: NextRequest) {
     let html = await upstream.text();
 
     // Replace URLs
-    html = html.replace(/https:\/\/ebb\.framer\.ai\//g, 'https://cmdtech.uz/');
-    html = html.replace(/<!-- .* Built with Framer .* https:\/\/www\.framer\.com\/.*-->/g, '');
-
+    html = html.replace(/https:\/\/ebb\.framer\.ai\//g, '/api/proxy/ebb.framer.ai/');
+    html = html.replace(/https:\/\/framerusercontent\.com\//g, '/api/proxy/framerusercontent.com/');
+    // Remove Framer attribution comment
+    html = html.replace(/<!--\s*✨\s*Built with Framer\s*•\s*https:\/\/www\.framer\.com\/\s*-->/g, '');
     // Add Yandex Metrika
     const yandexMetrikaCode = `
       <!-- Yandex.Metrika counter -->
