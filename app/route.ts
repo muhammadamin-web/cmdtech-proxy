@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
 
     let html = await response.text();
 
-    // Replace CDN URLs
-    html = html.replace(/https:\/\/ebb\.framer\.ai\//g, 'https://cmdtech.uz/');
+    // Replace CDN URLs - point to /api/proxy endpoint for assets
+    html = html.replace(/https:\/\/ebb\.framer\.ai\//g, '/api/proxy/ebb.framer.ai/');
     
     // Remove Framer attribution comment
     html = html.replace(/<!-- ✨ Built with Framer • https:\/\/www\.framer\.com\/ -->/g, '');
