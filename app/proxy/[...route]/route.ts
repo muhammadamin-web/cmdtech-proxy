@@ -5,8 +5,7 @@ export const runtime = 'edge';
 export async function GET(
   req: NextRequest,
   params: any
-) {) {
-  try {
+) {  try {
     const route = params.route || [];
     const resourcePath = route.join('/');
 
