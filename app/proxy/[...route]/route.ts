@@ -4,8 +4,8 @@ export const runtime = 'edge';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { route: string[] } }
-) {
+  params: any
+) {) {
   try {
     const route = params.route || [];
     const resourcePath = route.join('/');
@@ -49,7 +49,6 @@ export async function GET(
 
 export async function HEAD(
   req: NextRequest,
-  { params }: { params: { route: string[] } }
-) {
+  params: any) {
   return GET(req, { params });
 }
