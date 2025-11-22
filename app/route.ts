@@ -17,24 +17,38 @@ export async function GET(req: NextRequest) {
 
     let html = await response.text();
 
-    // Replace CDN URLs - point to /api/proxy endpoint for assets
+    // Replace all Framer CDN URLs - point to /api/proxy endpoint for assets
     html = html.replace(/https:\/\/ebb\.framer\.ai\//g, '/api/proxy/ebb.framer.ai/');
-    
-    // Remove Framer attribution comment
-    html = html.replace(/<!-- ✨ Built with Framer • https:\/\/www\.framer\.com\/ -->/g, '');
+    html = html.replace(/https:\/\/framerusercontent\.com\//g, '/api/proxy/framerusercontent.com/');
 
-    // Inject Yandex.Metrika tracking code
-    const yandexMetrikaCode = `
-      <!-- Yandex.Metrika counter -->
-      <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};\n        m[i].l=1*new Date();\n        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}\n        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})\n        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");\n        ym(97023034, "init", {\n          clickmap:true,\n          trackLinks:true,\n          accurateTrackBounce:true,\n          webvisor:true\n        });\n      </script>\n      <noscript><div><img src="https://mc.yandex.ru/watch/97023034" style="position:absolute; left:-9999px;" alt="" /></div></noscript>\n    `;
-    html = html.replace(/<\/head>/i, `${yandexMetrikaCode}</head>`);
+    // Remove Framer attribution comment
+    html = html.replace(/<!--\s*✨\s*Built with Framer\s*•\s*https:\/\/www\.framer\.com\/\s*-->/g, '');
 
     // Remove Framer badge
     html = html.replace(/<div id="__framer-badge-container"[^>]*>.*?<\/div>/gi, '');
-    
+
     // Remove robots meta
     html = html.replace(/<meta[^>]*name="robots"[^>]*>/gi, '');
+
+    // Inject Yandex.Metrika tracking code
+    const yandexMetrikaCode = `
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript" >
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+   ym(97023034, "init", {
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true,
+        webvisor:true
+   });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/97023034" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+    `;
+    html = html.replace(/<\/head>/i, `${yandexMetrikaCode}</head>`);
 
     return new NextResponse(html, {
       status: 200,
@@ -46,21 +60,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err) {
-    return new NextResponse(`Worker error:\n${err}`, {
-      status: 500,
-      headers: { 'content-type': 'text/plain' },
-    });
+    console.error('Proxy error:', err);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
-}
-
-export async function POST(req: NextRequest) {
-  return GET(req);
-}
-
-export async function PUT(req: NextRequest) {
-  return GET(req);
-}
-
-export async function DELETE(req: NextRequest) {
-  return GET(req);
 }
