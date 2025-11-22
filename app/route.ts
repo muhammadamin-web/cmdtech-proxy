@@ -42,7 +42,21 @@ export async function GET(req: NextRequest) {
     // Remove robots meta
     html = html.replace(/<meta[^>]*name="robots"[^>]*>/gi, '');
 
-    // Inject Yandex.Metrika tracking code
+    // Inject global fetch interceptor and Yandex.Metrika tracking code
+    const fetchInterceptor = `<script>\n(function() {
+  const originalFetch = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string') {
+      url = url.replace(/https:\/\/framerusercontent\.com\//g, '/proxy/framerusercontent.com/')
+               .replace(/https:\/\/ebb\.framer\.ai\//g, '/proxy/ebb.framer.ai/')
+               .replace(/https:\/\/frames\.framer\.ai\//g, '/proxy/frames.framer.ai/')
+               .replace(/https:\/\/cdn\.framer\.ai\//g, '/proxy/cdn.framer.ai/')
+               .replace(/https:\/\/assets\.framer\.ai\//g, '/proxy/assets.framer.ai/');
+    }
+    return originalFetch.call(this, url, opts);
+  };
+})();\n</script>`;
+
     const yandexMetrikaCode = `<!-- Yandex.Metrika counter --><script type="text/javascript" > (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
  m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
  (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
@@ -52,7 +66,7 @@ export async function GET(req: NextRequest) {
  accurateTrackBounce:true,
  webvisor:true
  });</script><noscript><div><img src="https://mc.yandex.ru/watch/97023034" style="position:absolute; left:-9999px;" alt="" /></div></noscript><!-- /Yandex.Metrika counter --> `;
-    html = html.replace(/<\/head>/i, `${yandexMetrikaCode}</head>`);
+    html = html.replace(/<\/head>/i, `${fetchInterceptor}${yandexMetrikaCode}</head>`);
 
     return new NextResponse(html, {
       status: 200,
