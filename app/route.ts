@@ -17,17 +17,20 @@ export async function GET(req: NextRequest) {
 
     let html = await response.text();
 
-    // CDN URLlarini almashtiramiz
-  // Rewrite all external URLs to go through the CDN proxy
-  // This catches all http(s) URLs in HTML attributes, stylesheets, and inline styles
-  html = html.replace(/(https?:\/\/[^\s"'<>{}|\\^`\]\[]+)/g, (url) => {
-    // Skip URLs that are already pointing to our CDN proxy or are data URLs
-    if (url.includes('/cdn/') || url.startsWith('data:')) {
-      return url;
-    }
-    // Convert all external URLs to use our CDN proxy
-    return `/cdn/${encodeURIComponent(url)}`;
-  });    
+    // MUHIM: URLlarni to'g'ri formatda almashtiramiz
+    // https://domain.com/path → /cdn/domain.com/path
+    
+    // Framer CDN'lari
+    html = html.replace(/https:\/\/framerusercontent\.com\//g, '/cdn/framerusercontent.com/');
+    html = html.replace(/https:\/\/ebb\.framer\.ai\//g, '/cdn/ebb.framer.ai/');
+    html = html.replace(/https:\/\/frames\.framer\.ai\//g, '/cdn/frames.framer.ai/');
+    html = html.replace(/https:\/\/cdn\.framer\.ai\//g, '/cdn/cdn.framer.ai/');
+    html = html.replace(/https:\/\/framer\.com\//g, '/cdn/framer.com/');
+    
+    // Google Fonts
+    html = html.replace(/https:\/\/fonts\.gstatic\.com\//g, '/cdn/fonts.gstatic.com/');
+    html = html.replace(/https:\/\/fonts\.googleapis\.com\//g, '/cdn/fonts.googleapis.com/');
+
     // Framer badgesini o'chiramiz
     html = html.replace(/<!--\s*✨\s*Built with Framer.*?-->/g, '');
     html = html.replace(/<div id="__framer-badge-container"[^>]*>.*?<\/div>/gi, '');
@@ -35,6 +38,7 @@ export async function GET(req: NextRequest) {
 
     // Yandex Metrika qo'shamiz
     const yandexMetrikaCode = `
+      <script>console.log('🔄 Vercel Proxy Active - Fixed');</script>
       <script type="text/javascript">
         (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
         m[i].l=1*new Date();
