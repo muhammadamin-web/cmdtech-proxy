@@ -18,11 +18,16 @@ export async function GET(req: NextRequest) {
     let html = await response.text();
 
     // CDN URLlarini almashtiramiz
-    html = html.replace(/https:\/\/framerusercontent\.com\//g, '/cdn/framerusercontent.com/');
-    html = html.replace(/https:\/\/ebb\.framer\.ai\//g, '/cdn/ebb.framer.ai/');
-    html = html.replace(/https:\/\/frames\.framer\.ai\//g, '/cdn/frames.framer.ai/');
-    html = html.replace(/https:\/\/cdn\.framer\.ai\//g, '/cdn/cdn.framer.ai/');
-    
+  // Rewrite all external URLs to go through the CDN proxy
+  // This catches all http(s) URLs in HTML attributes, stylesheets, and inline styles
+  html = html.replace(/(https?:\/\/[^\s"'<>{}|\\^`\]\[]+)/g, (url) => {
+    // Skip URLs that are already pointing to our CDN proxy or are data URLs
+    if (url.includes('/cdn/') || url.startsWith('data:')) {
+      return url;
+    }
+    // Convert all external URLs to use our CDN proxy
+    return `/cdn/${encodeURIComponent(url)}`;
+  });    
     // Framer badgesini o'chiramiz
     html = html.replace(/<!--\s*✨\s*Built with Framer.*?-->/g, '');
     html = html.replace(/<div id="__framer-badge-container"[^>]*>.*?<\/div>/gi, '');
